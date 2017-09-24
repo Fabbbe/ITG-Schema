@@ -1,0 +1,57 @@
+.toggle-button {
+    -fx-background-color: #e0e0e0;
+    -fx-padding: 38 5 38 5;
+    -fx-content-display: graphic-only;
+}
+.toggle-button:hover {
+    -fx-background-color: #fafafa;
+}
+.toggle-button:pressed {
+    -fx-background-color: #707070;
+}
+.toggle-button:selected {
+    -fx-background-color: #959595;
+}
+.preview-btn {
+    -fx-graphic: url('/graphics/icon/Bild-Ikon@0,25x.png');
+}
+.schedule-btn {
+    -fx-graphic: url('/graphics/icon/Kugg-Ikon@0,25x.png');
+}
+.home-btn {
+    -fx-graphic: url('/graphics/icon/Om-Ikon@0,25x.png');
+}
+
+.pane {
+    -fx-background-color: #e0e0e0;
+}
+
+.home-box {
+}
+
+.schedule-box {
+    -fx-padding: 30;
+}
+
+.text-field {
+    -fx-max-width: 200;
+}
+
+.label {
+    -fx-pref-width: 700;
+    -fx-alignment: center;
+}
+
+.h1 {
+    -fx-font-size: 40;
+    -fx-font-weight: bold;
+    -fx-padding: 70 0 30 0;
+}
+.description {
+    -fx-font-size: 15;
+}
+.schema {
+    -fx-pref-width:800;
+    -fx-translate-x: 8;
+    -fx-translate-y: 6;
+}
