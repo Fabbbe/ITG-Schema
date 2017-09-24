@@ -1,0 +1,6 @@
+
+Schema.iml
+out/
+.idea/
+*.MF
+src/source/sample.fxml
