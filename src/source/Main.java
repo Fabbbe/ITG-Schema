@@ -5,6 +5,8 @@ package source;
 import javafx.application.Application;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -16,27 +18,29 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
+import java.io.*;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.GregorianCalendar;
+import java.util.Properties;
 
 import static source.IconImageUtilities.setIconImage;
 
 public class Main extends Application {
 
 
-    final static int HEIGHT = 627;
-    final static int WIDTH = 900;
+    int HEIGHT = 627;
+    int WIDTH = 900;
+    String conf_file_name = ".\\schema_settings.conf";
 
 
     @Override
-    public void start(Stage primaryStage) {
+        public void start(Stage primaryStage) {
 
-
-        final int button_height = 125;
 
         // Create Toggle Group for all icons
         ToggleGroup icons = new ToggleGroup();
+        ToggleGroup resize = new ToggleGroup();
 
         // Create Toggle Buttons and add a spreadsheet to it
         ToggleButton home_btn = new ToggleButton();
@@ -51,21 +55,29 @@ public class Main extends Application {
         preview_btn.getStyleClass().addAll("toggle-button", "preview-btn");
         preview_btn.setSelected(true);
 
+        ToggleButton resize_btn = new ToggleButton();
+        resize_btn.setText("<<");
+        resize_btn.getStyleClass().addAll("toggle-button", "resize-button");
+
 
         // Add all icons to icons toggleGroup
         preview_btn.setToggleGroup(icons);
         schedule_btn.setToggleGroup(icons);
         home_btn.setToggleGroup(icons);
 
+        resize_btn.setToggleGroup(resize);
+
         // Create all VBoxes for all the menues
         VBox home_box = new VBox();
-        VBox schedule_box = new VBox();
+        VBox schedule_box = new VBox(10);
         VBox preview_box = new VBox();
 
         // setUserData to corresponding boxes
         home_btn.setUserData(home_box);
         schedule_btn.setUserData(schedule_box);
         preview_btn.setUserData(preview_box);
+
+        resize_btn.setUserData(true);
 
         // Set Style class
         home_box.getStyleClass().add("home-box");
@@ -82,7 +94,7 @@ public class Main extends Application {
 
 
         // Add icons to button_pane and add it to root
-        button_pane.getChildren().addAll(preview_btn, schedule_btn, home_btn);
+        button_pane.getChildren().addAll(preview_btn, schedule_btn, home_btn, resize_btn);
         root.getChildren().add(button_pane);
 
 
@@ -114,6 +126,20 @@ public class Main extends Application {
             }
         });
 
+        resize.selectedToggleProperty().addListener(new ChangeListener<Toggle>(){
+            public void changed(ObservableValue<? extends Toggle> ov,
+                                Toggle toggle, Toggle new_toggle) {
+
+                if (toggle != resize_btn) {
+                    // Go to the buttons corresponding menu
+                    resize_btn.setText(">>");
+                } else {
+                    resize_btn.setText("<<");
+                }
+
+            }
+        });
+
         // Set home_box as default menu when the program is launched
         menu_root.getChildren().add(preview_box);
 
@@ -125,11 +151,15 @@ public class Main extends Application {
     }
 
     private void createMenu(VBox home_box, VBox schedule_box, VBox preview_box) {
+
+
+        Properties conf = load_or_create_properties();
+
         Label title = new Label("Schema");
         title.getStyleClass().add("h1");
 
         // Create ImageView fot the schedule
-        Image schema = getSchedule();
+        Image schema = getSchedule(conf);
         ImageView schema_view = new ImageView();
         schema_view.setImage(schema);
         schema_view.getStyleClass().add("schema");
@@ -146,19 +176,34 @@ public class Main extends Application {
 
         preview_box.getChildren().add(schema_view);
 
-        Label opt_title = new Label("Inställnigar");
+        Label opt_title = new Label("Inställningar");
         opt_title.getStyleClass().add("h1");
 
-        TextField class_input = new TextField();
+        TextField class_input = new TextField(conf.getProperty("klass"));
         class_input.setPromptText("Din klass");
+
+        Button save_button = new Button("Save");
+        save_button.getStyleClass().add("save-button");
+
+        save_button.setOnAction(new EventHandler<ActionEvent>() {
+            @Override public void handle(ActionEvent e) {
+                conf.setProperty("klass", class_input.getText());
+                try {
+                    conf.store(new FileOutputStream(conf_file_name), null);
+                } catch (IOException e1) {
+
+                }
+                schema_view.setImage(getSchedule(conf));
+            }
+        });
 
         // ...
 
-        schedule_box.getChildren().addAll(opt_title ,class_input);
+        schedule_box.getChildren().addAll(opt_title ,class_input, save_button);
 
     }
 
-    private Image getSchedule() {
+    private Image getSchedule(Properties conf) {
         // Create Calendar and get current week number
         Calendar calendar = new GregorianCalendar();
         Date trialTime = new Date();
@@ -173,14 +218,37 @@ public class Main extends Application {
             week_number = calendar.get(Calendar.WEEK_OF_YEAR);
         }
 
-        System.out.print("WEEK: " + week_number);
+        System.out.print("Loaded schedule for WEEK: " + week_number + "\n");
 
 
         // Get the schedule from
-        Image schema = new Image("http://www.novasoftware.se/ImgGen/schedulegenerator.aspx?format=png&schoolid=80220/sv-se&type=-1&id=1a&period=&week=" +
-                week_number +"&mode=0&printer=0&colors=32&head=0&clock=0&foot=0&day=0&width=760&height=620&maxwidth=1885&maxheight=793",
-                760, 620, false, false);
+        Image schema = new Image("http://www.novasoftware.se/ImgGen/schedulegenerator.aspx?format=gif&schoolid=80220/sv-se&type=-1&id=" + conf.getProperty("klass") + "&period=&week=" +
+                week_number +"&mode=0&printer=0&colors=32&head=0&clock=0&foot=0&day=0&width=380&height=310&maxwidth=1885&maxheight=793",
+                760, 620, false, true);
         return schema;
+    }
+
+    private Properties load_or_create_properties() {
+
+        Properties conf = new Properties();
+        String conf_file_name = ".\\schema_settings.conf";
+
+        try {
+            conf.load(new FileInputStream(conf_file_name));
+        } catch (IOException e) {
+
+            File conf_file = new File(conf_file_name);
+            try {
+                conf_file.createNewFile();
+            } catch (IOException e1) {
+
+            }
+
+            e.printStackTrace();
+
+        }
+
+        return conf;
     }
 
     public static void main(String[] args) {

@@ -4,3 +4,4 @@ out/
 .idea/
 *.MF
 src/source/sample.fxml
+*.conf

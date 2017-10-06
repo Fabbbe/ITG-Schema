@@ -22,6 +22,17 @@
     -fx-graphic: url('/graphics/icon/Om-Ikon@0,25x.png');
 }
 
+.resize-button {
+    -fx-padding:2;
+    -fx-content-display: text-only;
+    -fx-text-alignment: center;
+    -fx-pref-width: 138;
+    -fx-pref-height: 30;
+}
+
+.save-button {
+}
+
 .pane {
     -fx-background-color: #e0e0e0;
 }
